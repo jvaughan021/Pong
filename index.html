@@ -39,30 +39,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             padding: 12px;
-        }
-
-        /* Rewarded Ad Reward Trigger Button */
-        .ad-zone {
-            width: 100%;
-            max-width: 400px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(236, 72, 153, 0.2));
-            border: 2px solid var(--accent-primary);
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            color: var(--text-main);
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .ad-zone:active {
-            transform: scale(0.98);
         }
 
         .game-card {
@@ -237,7 +215,9 @@
             font-size: 0.9rem;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 14px;
+            margin-top: 8px;
+            width: 100%;
+            max-width: 260px;
             transition: background 0.2s;
         }
 
@@ -293,7 +273,7 @@
         /* Toast Notification Popup */
         .toast {
             position: absolute;
-            top: 60px;
+            top: 20px;
             background: #10b981;
             color: white;
             padding: 8px 14px;
@@ -318,11 +298,6 @@
     </style>
 </head>
 <body>
-
-    <!-- Telegram Adsgram Rewarded Ad Button -->
-    <div class="ad-zone" onclick="watchAdForBonus()">
-        🎬 Watch Ad for Bonus / Continue
-    </div>
 
     <div class="game-card">
         <div class="header-bar">
@@ -381,32 +356,19 @@
     <script>
         // Initialize Telegram WebApp SDK safely
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
 
-        // Initialize Adsgram Controller (Replace 'YOUR_BLOCK_ID' with your actual Adsgram Block ID)
+        // Initialize Adsgram Controller (Replace 'YOUR_BLOCK_ID' with your real block ID from adsgram.ai)
         let AdController = null;
         try {
             if (window.Adsgram) {
                 AdController = window.Adsgram.init({ blockId: "YOUR_BLOCK_ID" });
             }
         } catch (e) {
-            console.log("Adsgram initialization skipped/failed outside Telegram.");
-        }
-
-        function watchAdForBonus() {
-            if (AdController) {
-                AdController.show().then((result) => {
-                    // User watched the ad completely - give them a gameplay perk or bonus score
-                    showToast("Ad Watched! Bonus Active!");
-                    playTone(900, 'triangle', 0.25);
-                }).catch((result) => {
-                    // User skipped or ad failed
-                    showToast("Ad skipped or unavailable.");
-                });
-            } else {
-                alert("Adsgram SDK is loading or unavailable in this environment.");
-            }
+            console.log("Adsgram SDK running in desktop test mode.");
         }
 
         const canvas = document.getElementById('pongCanvas');
@@ -435,7 +397,7 @@
             } catch (e) {}
         }
 
-        // Achievements Definition with Unique Icons
+        // Achievements Definition
         const achievements = {
             firstWin: { id: 'firstWin', title: 'First Blood', desc: 'Win your first game', icon: '🎯', unlocked: false },
             easyShutout: { id: 'easyShutout', title: 'Easy Master', desc: 'Win an Easy game without taking hits', icon: '🛡️', unlocked: false },
@@ -710,13 +672,16 @@
         function endGame(playerWon) {
             isRunning = false;
             const modal = document.getElementById('gameModal');
-            document.getElementById('modalIcon').textContent = playerWon ? '🏆' : '💀';
-            document.getElementById('modalTitle').textContent = playerWon ? 'You Won the Match!' : 'Bot Wins the Match!';
-            modal.classList.add('visible');
-
+            
             if (playerWon) {
-                unlockAchievement('firstWin');
+                modal.innerHTML = `
+                    <div class="modal-icon">🏆</div>
+                    <div class="modal-title">You Won the Match!</div>
+                    <button class="primary-btn" onclick="resetMatch()">Play Again</button>
+                `;
+                modal.classList.add('visible');
 
+                unlockAchievement('firstWin');
                 winStreak++;
                 localStorage.setItem('pong_streak', winStreak);
                 if (winStreak >= 2) unlockAchievement('winStreak2');
@@ -745,12 +710,47 @@
                     localStorage.setItem('pong_hard_streak', 0);
                 }
             } else {
+                modal.innerHTML = `
+                    <div class="modal-icon">💀</div>
+                    <div class="modal-title">Bot Wins!</div>
+                    <button class="primary-btn" style="background: var(--accent-gold);" onclick="watchAdToContinue()">
+                        🎬 Watch Ad to Revive
+                    </button>
+                    <button class="primary-btn" style="background: var(--border-color);" onclick="resetMatch()">
+                        Give Up & Restart
+                    </button>
+                `;
+                modal.classList.add('visible');
+
                 winStreak = 0;
                 medWinStreak = 0;
                 hardWinStreak = 0;
                 localStorage.setItem('pong_streak', 0);
                 localStorage.setItem('pong_med_streak', 0);
                 localStorage.setItem('pong_hard_streak', 0);
+            }
+        }
+
+        function watchAdToContinue() {
+            if (AdController) {
+                AdController.show().then((result) => {
+                    bot.score = 5;
+                    document.getElementById('botScore').textContent = bot.score;
+                    document.getElementById('gameModal').classList.remove('visible');
+                    isRunning = true;
+                    startCountdown('player');
+                    showToast("Second Chance Granted!");
+                }).catch((err) => {
+                    showToast("Ad skipped or failed.");
+                });
+            } else {
+                // Desktop simulation fallback
+                bot.score = 5;
+                document.getElementById('botScore').textContent = bot.score;
+                document.getElementById('gameModal').classList.remove('visible');
+                isRunning = true;
+                startCountdown('player');
+                showToast("Revived (Desktop Mode)");
             }
         }
 
