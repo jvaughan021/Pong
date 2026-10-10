@@ -509,6 +509,19 @@
             currentDiff = diff;
             document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-${diff}`).classList.add('active');
+            
+            // Stop game, reset state, and force "Start Game" title screen
+            isRunning = false;
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            player.score = 0;
+            bot.score = 0;
+            document.getElementById('playerScore').textContent = '0';
+            document.getElementById('botScore').textContent = '0';
+            player.x = canvas.width / 2 - PADDLE_WIDTH / 2;
+            bot.x = canvas.width / 2 - PADDLE_WIDTH / 2;
+
+            showTitleModal();
         }
 
         function startCountdown(servingPlayer = 'player') {
@@ -560,6 +573,16 @@
                     showLossModal();
                 }
             }
+        }
+
+        function showTitleModal() {
+            const modal = document.getElementById('gameModal');
+            modal.innerHTML = `
+                <div class="modal-icon">🏓</div>
+                <div class="modal-title">Arcade Pong</div>
+                <button class="primary-btn" onclick="resetMatch()">Start Game</button>
+            `;
+            modal.classList.add('visible');
         }
 
         function showWinModal() {
@@ -633,14 +656,8 @@
             movePaddle(e.clientX);
         });
 
-        // Initial Title Screen
-        const modal = document.getElementById('gameModal');
-        modal.innerHTML = `
-            <div class="modal-icon">🏓</div>
-            <div class="modal-title">Arcade Pong</div>
-            <button class="primary-btn" onclick="resetMatch()">Start Game</button>
-        `;
-        modal.classList.add('visible');
+        // Initial Title Screen setup
+        showTitleModal();
 
         function renderAchievements() {
             const list = document.getElementById('achList');
