@@ -368,12 +368,12 @@
 
         let player = { x: canvas.width / 2 - PADDLE_WIDTH / 2, y: canvas.height - 20, score: 0 };
         let bot = { x: canvas.width / 2 - PADDLE_WIDTH / 2, y: 10, score: 0 };
-        let ball = { x: canvas.width / 2, y: canvas.height / 2, vx: 0, vy: 0, speed: 4 };
+        let ball = { x: canvas.width / 2, y: canvas.height / 2, vx: 0, vy: 0, speed: 2.8 };
 
         const diffSettings = {
-            easy: { botSpeed: 2.2, speedInc: 0.2 },
-            medium: { botSpeed: 3.5, speedInc: 0.35 },
-            hard: { botSpeed: 4.8, speedInc: 0.5 }
+            easy: { botSpeed: 1.8, speedInc: 0.1 },
+            medium: { botSpeed: 2.8, speedInc: 0.18 },
+            hard: { botSpeed: 3.8, speedInc: 0.25 }
         };
 
         const achievementsData = [
@@ -412,7 +412,7 @@
         function resetBall(servingPlayer = 'player') {
             ball.x = canvas.width / 2;
             ball.y = canvas.height / 2;
-            ball.speed = 4;
+            ball.speed = 2.8;
             isSuperhit = false;
             const dir = servingPlayer === 'player' ? -1 : 1;
             const angle = (Math.random() * 0.8 - 0.4);
@@ -441,7 +441,7 @@
                     let hitPos = (ball.x - (player.x + PADDLE_WIDTH / 2)) / (PADDLE_WIDTH / 2);
                     if (Math.abs(hitPos) > 0.75) {
                         isSuperhit = true;
-                        ball.speed += 2.5;
+                        ball.speed += 1.2;
                         unlockAchievement('superhit');
                     } else {
                         isSuperhit = false;
