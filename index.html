@@ -344,8 +344,11 @@
             tg.ready();
         }
 
-        // Adsgram Block ID
-        const ADSGRAM_BLOCK_ID = "int-53213";
+        // Adsgram AdController Initialization
+        let AdController = null;
+        if (window.Adsgram) {
+            AdController = window.Adsgram.init({ blockId: "int-53213" });
+        }
 
         // --- Canvas & Core Setup ---
         const canvas = document.getElementById('pongCanvas');
@@ -543,22 +546,22 @@
             startCountdown('player');
         }
 
-        async function endGame(playerWon) {
+        function endGame(playerWon) {
             isRunning = false;
 
             if (playerWon) {
                 showWinModal();
             } else {
-                // Safely trigger Adsgram interstitial ad
-                if (window.Adsgram) {
-                    try {
-                        const AdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
-                        await AdController.show();
-                    } catch (e) {
-                        console.log("Ad skipped or unavailable:", e);
-                    }
+                // Trigger Adsgram Interstitial Ad on Loss
+                if (AdController) {
+                    AdController.show().then(() => {
+                        showLossModal();
+                    }).catch(() => {
+                        showLossModal();
+                    });
+                } else {
+                    showLossModal();
                 }
-                showLossModal();
             }
         }
 
