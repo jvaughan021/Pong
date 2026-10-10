@@ -157,7 +157,6 @@
             touch-action: none;
         }
 
-        /* Modals */
         .modal-overlay {
             position: absolute;
             top: 0;
@@ -207,7 +206,6 @@
             width: 80%;
         }
 
-        /* Achievements Drawer */
         .drawer {
             position: fixed;
             bottom: -100%;
@@ -271,7 +269,6 @@
             text-align: center;
         }
 
-        /* Toast Popup */
         .toast {
             position: fixed;
             top: 20px;
@@ -322,14 +319,13 @@
         <canvas id="pongCanvas"></canvas>
 
         <div class="modal-overlay" id="gameModal">
-            <!-- Modal Content dynamically injected -->
+            <!-- Modal Content -->
         </div>
     </div>
 
     <div class="footer-note" id="instructionText">Hit paddle edge for Superhit! • Tap to start</div>
     <div class="footer-note" style="margin-top:2px;">Created by Jack Vaughan</div>
 
-    <!-- Trophy Drawer -->
     <div class="drawer" id="achDrawer">
         <div class="drawer-header">
             <h3>Achievements</h3>
@@ -341,20 +337,17 @@
     <div class="toast" id="toast">Achievement Unlocked!</div>
 
     <script>
-        // --- Telegram & Adsgram Initialization ---
+        // --- Telegram SDK ---
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) {
             tg.expand();
             tg.ready();
         }
 
-        // Adsgram AdController with your live Block ID
-        let AdController = null;
-        if (window.Adsgram) {
-            AdController = window.Adsgram.init({ blockId: "int-53213" });
-        }
+        // Adsgram Block ID
+        const ADSGRAM_BLOCK_ID = "int-53213";
 
-        // --- Game Setup ---
+        // --- Canvas & Core Setup ---
         const canvas = document.getElementById('pongCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -418,7 +411,6 @@
             setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        // --- Core Loop ---
         function resetBall(servingPlayer = 'player') {
             ball.x = canvas.width / 2;
             ball.y = canvas.height / 2;
@@ -436,24 +428,19 @@
             ball.x += ball.vx;
             ball.y += ball.vy;
 
-            // Wall collisions
             if (ball.x - BALL_RADIUS <= 0 || ball.x + BALL_RADIUS >= canvas.width) {
                 ball.vx *= -1;
             }
 
-            // Bot AI
             const botTarget = ball.x - PADDLE_WIDTH / 2;
             const speed = diffSettings[currentDiff].botSpeed;
             if (bot.x < botTarget) bot.x = Math.min(bot.x + speed, botTarget);
             if (bot.x > botTarget) bot.x = Math.max(bot.x - speed, botTarget);
             bot.x = Math.max(0, Math.min(canvas.width - PADDLE_WIDTH, bot.x));
 
-            // Collision: Player Paddle
             if (ball.vy > 0 && ball.y + BALL_RADIUS >= player.y && ball.y - BALL_RADIUS <= player.y + PADDLE_HEIGHT) {
                 if (ball.x >= player.x && ball.x <= player.x + PADDLE_WIDTH) {
                     let hitPos = (ball.x - (player.x + PADDLE_WIDTH / 2)) / (PADDLE_WIDTH / 2);
-                    
-                    // Edge superhit
                     if (Math.abs(hitPos) > 0.75) {
                         isSuperhit = true;
                         ball.speed += 2.5;
@@ -462,14 +449,12 @@
                         isSuperhit = false;
                         ball.speed += diffSettings[currentDiff].speedInc;
                     }
-
                     let angle = hitPos * (Math.PI / 3);
                     ball.vx = ball.speed * Math.sin(angle);
                     ball.vy = -ball.speed * Math.cos(angle);
                 }
             }
 
-            // Collision: Bot Paddle
             if (ball.vy < 0 && ball.y - BALL_RADIUS <= bot.y + PADDLE_HEIGHT && ball.y + BALL_RADIUS >= bot.y) {
                 if (ball.x >= bot.x && ball.x <= bot.x + PADDLE_WIDTH) {
                     let hitPos = (ball.x - (bot.x + PADDLE_WIDTH / 2)) / (PADDLE_WIDTH / 2);
@@ -480,7 +465,6 @@
                 }
             }
 
-            // Scoring
             if (ball.y < 0) {
                 player.score++;
                 document.getElementById('playerScore').textContent = player.score;
@@ -497,7 +481,6 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Center Net
             ctx.setLineDash([4, 4]);
             ctx.strokeStyle = '#30363d';
             ctx.beginPath();
@@ -506,14 +489,12 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Paddles
             ctx.fillStyle = '#238636';
             ctx.fillRect(player.x, player.y, PADDLE_WIDTH, PADDLE_HEIGHT);
 
             ctx.fillStyle = '#da3633';
             ctx.fillRect(bot.x, bot.y, PADDLE_WIDTH, PADDLE_HEIGHT);
 
-            // Ball
             ctx.fillStyle = isSuperhit ? '#d29922' : '#f0f6fc';
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
@@ -526,7 +507,6 @@
             requestAnimationFrame(loop);
         }
 
-        // --- Game State Controllers ---
         function setDifficulty(diff) {
             currentDiff = diff;
             document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
@@ -563,23 +543,22 @@
             startCountdown('player');
         }
 
-        function endGame(playerWon) {
+        async function endGame(playerWon) {
             isRunning = false;
 
             if (playerWon) {
-                // Player Won: No ad, show Win screen
                 showWinModal();
             } else {
-                // Player Lost: Show ad, then show Game Over screen
-                if (AdController) {
-                    AdController.show().then(() => {
-                        showLossModal();
-                    }).catch(() => {
-                        showLossModal();
-                    });
-                } else {
-                    showLossModal();
+                // Safely trigger Adsgram interstitial ad
+                if (window.Adsgram) {
+                    try {
+                        const AdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+                        await AdController.show();
+                    } catch (e) {
+                        console.log("Ad skipped or unavailable:", e);
+                    }
                 }
+                showLossModal();
             }
         }
 
@@ -639,7 +618,6 @@
             localStorage.setItem('pong_hard_streak', 0);
         }
 
-        // --- Controls ---
         function movePaddle(clientX) {
             const rect = canvas.getBoundingClientRect();
             let newX = clientX - rect.left - PADDLE_WIDTH / 2;
@@ -655,7 +633,6 @@
             movePaddle(e.clientX);
         });
 
-        // Start Initial Modal
         const modal = document.getElementById('gameModal');
         modal.innerHTML = `
             <div class="modal-icon">🏓</div>
@@ -664,7 +641,6 @@
         `;
         modal.classList.add('visible');
 
-        // Achievements Render
         function renderAchievements() {
             const list = document.getElementById('achList');
             list.innerHTML = achievementsData.map(a => `
