@@ -2,192 +2,180 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Arcade Pong</title>
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Adsgram SDK for Telegram Ad Monetization -->
+    <!-- Adsgram SDK -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --border-color: #334155;
-            --accent-primary: #3b82f6;
-            --accent-gold: #f59e0b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --success: #10b981;
-            --danger: #ef4444;
-            --superhit: #ec4899;
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --accent-blue: #2f81f7;
+            --accent-gold: #d29922;
+            --text-main: #f0f6fc;
+            --text-sub: #8b949e;
+            --border-color: #30363d;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: none;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            min-height: 100vh;
             padding: 12px;
+            overflow: hidden;
         }
 
-        .game-card {
+        header {
             width: 100%;
             max-width: 400px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-            position: relative;
-        }
-
-        .header-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
-        .title {
-            font-size: 1.15rem;
-            font-weight: 800;
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .trophy-btn {
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            color: var(--accent-gold);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
+        .title-group h1 {
+            font-size: 1.2rem;
             font-weight: 700;
+        }
+
+        .icon-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--accent-gold);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 4px;
         }
 
-        .trophy-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Difficulty Selector */
-        .difficulty-selector {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+        .diff-selector {
+            display: flex;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2px;
             width: 100%;
-            margin-bottom: 12px;
+            max-width: 400px;
+            margin-bottom: 8px;
         }
 
         .diff-btn {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 6px 4px;
-            border-radius: 8px;
-            font-size: 0.75rem;
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 6px;
+            font-size: 0.8rem;
             font-weight: 600;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s;
         }
 
         .diff-btn.active {
-            background: var(--accent-primary);
-            color: white;
-            border-color: rgba(255,255,255,0.2);
+            background: var(--accent-blue);
+            color: #fff;
         }
 
         .scoreboard {
             display: flex;
             justify-content: space-around;
             width: 100%;
-            background: var(--bg-color);
+            max-width: 400px;
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
+            text-align: center;
         }
 
         .score-box {
-            text-align: center;
+            display: flex;
+            flex-direction: column;
         }
 
-        .score-box label {
-            display: block;
-            font-size: 0.65rem;
-            color: var(--text-muted);
+        .score-label {
+            font-size: 0.7rem;
+            color: var(--text-sub);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .score-box span {
+        .score-val {
             font-size: 1.4rem;
             font-weight: 800;
-            font-variant-numeric: tabular-nums;
+            color: #238636;
         }
 
-        #pongCanvas {
-            background: #090d16;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
+        .score-val.bot {
+            color: #da3633;
+        }
+
+        .canvas-container {
+            position: relative;
             width: 100%;
-            height: auto;
-            max-height: 380px;
-            cursor: pointer;
+            max-width: 400px;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .controls-hint {
-            margin-top: 10px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-align: center;
+        canvas {
+            background: #010409;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 100%;
+            height: 100%;
+            max-height: 480px;
+            touch-action: none;
         }
 
-        .credit-footer {
-            margin-top: 12px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            text-align: center;
-        }
-
-        /* Modal Overlay for Match Point & Achievements */
+        /* Modals */
         .modal-overlay {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            border-radius: 16px;
+            right: 0;
+            bottom: 0;
+            background: rgba(13, 17, 23, 0.92);
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            z-index: 10;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
+            align-items: center;
+            border-radius: 8px;
             padding: 20px;
             text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 10;
         }
 
         .modal-overlay.visible {
@@ -195,371 +183,374 @@
             pointer-events: auto;
         }
 
-        .modal-icon {
-            font-size: 2.5rem;
-            margin-bottom: 6px;
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 8px;
         }
 
-        .modal-title {
-            font-size: 1.35rem;
-            font-weight: 800;
+        .modal-icon {
+            font-size: 2.5rem;
             margin-bottom: 12px;
         }
 
         .primary-btn {
-            background: var(--accent-primary);
-            color: white;
+            background: var(--accent-blue);
+            color: #fff;
             border: none;
             padding: 10px 20px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             margin-top: 8px;
-            width: 100%;
-            max-width: 260px;
-            transition: background 0.2s;
+            width: 80%;
         }
 
-        .primary-btn:hover {
-            background: #2563eb;
-        }
-
-        /* Achievements List Styling */
-        .achievements-list {
-            width: 100%;
-            max-height: 250px;
+        /* Achievements Drawer */
+        .drawer {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            border-radius: 16px 16px 0 0;
+            padding: 16px;
+            max-height: 70vh;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 8px;
-            text-align: left;
-            padding-right: 4px;
+            transition: bottom 0.3s ease;
+            z-index: 20;
         }
 
-        .achievement-item {
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px 10px;
+        .drawer.open {
+            bottom: 0;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .ach-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            opacity: 0.5;
+            gap: 12px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            opacity: 0.4;
         }
 
-        .achievement-item.unlocked {
+        .ach-item.unlocked {
             opacity: 1;
-            border-color: rgba(16, 185, 129, 0.4);
-            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--accent-gold);
         }
 
         .ach-icon {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
         }
 
         .ach-info h4 {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-main);
+            font-size: 0.9rem;
         }
 
         .ach-info p {
-            font-size: 0.65rem;
-            color: var(--text-muted);
+            font-size: 0.75rem;
+            color: var(--text-sub);
         }
 
-        /* Toast Notification Popup */
-        .toast {
-            position: absolute;
-            top: 20px;
-            background: #10b981;
-            color: white;
-            padding: 8px 14px;
-            border-radius: 8px;
+        .footer-note {
             font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: 6px;
+            text-align: center;
+        }
+
+        /* Toast Popup */
+        .toast {
+            position: fixed;
+            top: 20px;
+            background: var(--accent-gold);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
             font-weight: 700;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            z-index: 20;
-            transform: translateY(-20px);
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            transform: translateY(-100px);
+            transition: transform 0.3s ease;
+            z-index: 30;
         }
 
         .toast.show {
             transform: translateY(0);
-            opacity: 1;
         }
     </style>
 </head>
 <body>
 
-    <div class="game-card">
-        <div class="header-bar">
-            <div class="title">🏓 Arcade Pong</div>
-            <button class="trophy-btn" onclick="openAchievements()">🏆 Trophies</button>
+    <header>
+        <div class="title-group">
+            <span>🏓</span>
+            <h1>Arcade Pong</h1>
         </div>
+        <button class="icon-btn" onclick="toggleAchievements()">🏆 Trophies</button>
+    </header>
 
-        <div class="difficulty-selector">
-            <button class="diff-btn" data-diff="easy" onclick="setDifficulty('easy')">Easy</button>
-            <button class="diff-btn active" data-diff="medium" onclick="setDifficulty('medium')">Medium</button>
-            <button class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')">Hard</button>
+    <div class="diff-selector">
+        <button class="diff-btn" id="btn-easy" onclick="setDifficulty('easy')">Easy</button>
+        <button class="diff-btn active" id="btn-medium" onclick="setDifficulty('medium')">Medium</button>
+        <button class="diff-btn" id="btn-hard" onclick="setDifficulty('hard')">Hard</button>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <span class="score-label">You</span>
+            <span class="score-val" id="playerScore">0</span>
         </div>
-
-        <div class="scoreboard">
-            <div class="score-box">
-                <label>You</label>
-                <span id="playerScore" style="color: var(--success);">0</span>
-            </div>
-            <div class="score-box">
-                <label>Bot</label>
-                <span id="botScore" style="color: var(--danger);">0</span>
-            </div>
+        <div class="score-box">
+            <span class="score-label">Bot</span>
+            <span class="score-val bot" id="botScore">0</span>
         </div>
+    </div>
 
-        <canvas id="pongCanvas" width="350" height="380"></canvas>
+    <div class="canvas-container">
+        <canvas id="pongCanvas"></canvas>
 
-        <div class="controls-hint" id="controlsHint">
-            Hit paddle edge for Superhit! • Tap to start
-        </div>
-
-        <!-- Toast Notification -->
-        <div class="toast" id="toastBox">🏆 <span id="toastText">Achievement Unlocked!</span></div>
-
-        <!-- End Game Modal -->
         <div class="modal-overlay" id="gameModal">
-            <div class="modal-icon" id="modalIcon">🏆</div>
-            <div class="modal-title" id="modalTitle">You Won!</div>
-            <button class="primary-btn" onclick="resetMatch()">Play Again</button>
-        </div>
-
-        <!-- Achievements Modal -->
-        <div class="modal-overlay" id="achievementsModal">
-            <div class="modal-title">🏆 Trophies & Achievements</div>
-            <div class="achievements-list" id="achievementsList">
-                <!-- Populated via JS -->
-            </div>
-            <button class="primary-btn" onclick="closeAchievements()">Back to Game</button>
+            <!-- Modal Content dynamically injected -->
         </div>
     </div>
 
-    <!-- Creator Credit Footer -->
-    <div class="credit-footer">
-        Created by Jack Vaughan
+    <div class="footer-note" id="instructionText">Hit paddle edge for Superhit! • Tap to start</div>
+    <div class="footer-note" style="margin-top:2px;">Created by Jack Vaughan</div>
+
+    <!-- Trophy Drawer -->
+    <div class="drawer" id="achDrawer">
+        <div class="drawer-header">
+            <h3>Achievements</h3>
+            <button class="icon-btn" onclick="toggleAchievements()">Close</button>
+        </div>
+        <div id="achList"></div>
     </div>
+
+    <div class="toast" id="toast">Achievement Unlocked!</div>
 
     <script>
-        // Initialize Telegram WebApp SDK safely
-        const tg = window.Telegram.WebApp;
+        // --- Telegram & Adsgram Initialization ---
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) {
-            tg.ready();
             tg.expand();
+            tg.ready();
         }
 
-        // Initialize Adsgram Controller (Replace 'YOUR_BLOCK_ID' with your real block ID from adsgram.ai)
+        // Adsgram AdController with your live Block ID
         let AdController = null;
-        try {
-            if (window.Adsgram) {
-                AdController = window.Adsgram.init({ blockId: "YOUR_BLOCK_ID" });
-            }
-        } catch (e) {
-            console.log("Adsgram SDK running in desktop test mode.");
+        if (window.Adsgram) {
+            AdController = window.Adsgram.init({ blockId: "int-53213" });
         }
 
+        // --- Game Setup ---
         const canvas = document.getElementById('pongCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Clean Safe Audio System
-        let audioCtx = null;
-        function playTone(freq, type, duration) {
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type || 'sine';
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {}
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = Math.min(rect.height, 480);
         }
+        resizeCanvas();
 
-        // Achievements Definition
-        const achievements = {
-            firstWin: { id: 'firstWin', title: 'First Blood', desc: 'Win your first game', icon: '🎯', unlocked: false },
-            easyShutout: { id: 'easyShutout', title: 'Easy Master', desc: 'Win an Easy game without taking hits', icon: '🛡️', unlocked: false },
-            medShutout: { id: 'medShutout', title: 'Medium Master', desc: 'Win a Medium game without taking hits', icon: '⚡', unlocked: false },
-            hardShutout: { id: 'hardShutout', title: 'Hard Master', desc: 'Win a Hard game without taking hits', icon: '🌋', unlocked: false },
-            winStreak2: { id: 'winStreak2', title: 'Back-to-Back', desc: 'Win 2 games in a row (Any difficulty)', icon: '🔥', unlocked: false },
-            medStreak2: { id: 'medStreak2', title: 'Tactician', desc: 'Win 2 Medium games in a row', icon: '🧠', unlocked: false },
-            legend: { id: 'legend', title: 'Pong Legend', desc: 'Win 3 Hard games in a row', icon: '👑', unlocked: false }
+        const PADDLE_WIDTH = 70;
+        const PADDLE_HEIGHT = 10;
+        const BALL_RADIUS = 6;
+        const WINNING_SCORE = 7;
+
+        let currentDiff = 'medium';
+        let isRunning = false;
+        let isSuperhit = false;
+
+        let player = { x: canvas.width / 2 - PADDLE_WIDTH / 2, y: canvas.height - 20, score: 0 };
+        let bot = { x: canvas.width / 2 - PADDLE_WIDTH / 2, y: 10, score: 0 };
+        let ball = { x: canvas.width / 2, y: canvas.height / 2, vx: 0, vy: 0, speed: 4 };
+
+        const diffSettings = {
+            easy: { botSpeed: 2.2, speedInc: 0.2 },
+            medium: { botSpeed: 3.5, speedInc: 0.35 },
+            hard: { botSpeed: 4.8, speedInc: 0.5 }
         };
 
-        function loadAchievements() {
-            const saved = localStorage.getItem('pong_achievements');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                for (let key in parsed) {
-                    if (achievements[key]) achievements[key].unlocked = parsed[key];
-                }
-            }
-        }
+        // --- Achievements Data ---
+        const achievementsData = [
+            { id: 'firstWin', icon: '🥉', title: 'First Victory', desc: 'Win your first match.' },
+            { id: 'winStreak2', icon: '🥈', title: 'On a Roll', desc: 'Win 2 matches in a row.' },
+            { id: 'easyShutout', icon: '🧹', title: 'Easy Sweep', desc: 'Beat Easy bot 7-0.' },
+            { id: 'medShutout', icon: '⚡', title: 'Medium Dominance', desc: 'Beat Medium bot 7-0.' },
+            { id: 'hardShutout', icon: '🔥', title: 'Unstoppable', desc: 'Beat Hard bot 7-0.' },
+            { id: 'medStreak2', icon: '🥇', title: 'Master Player', desc: 'Win 2 Medium matches in a row.' },
+            { id: 'legend', icon: '👑', title: 'Pong Legend', desc: 'Win 3 Hard matches in a row.' },
+            { id: 'superhit', icon: '💥', title: 'Superhit!', desc: 'Trigger a edge-boost hit.' }
+        ];
 
-        function saveAchievements() {
-            const data = {};
-            for (let key in achievements) {
-                data[key] = achievements[key].unlocked;
-            }
-            localStorage.setItem('pong_achievements', JSON.stringify(data));
-        }
-
-        loadAchievements();
-
+        let unlockedAchievements = JSON.parse(localStorage.getItem('pong_achievements') || '[]');
         let winStreak = parseInt(localStorage.getItem('pong_streak') || '0');
         let medWinStreak = parseInt(localStorage.getItem('pong_med_streak') || '0');
         let hardWinStreak = parseInt(localStorage.getItem('pong_hard_streak') || '0');
 
-        function unlockAchievement(key) {
-            if (!achievements[key].unlocked) {
-                achievements[key].unlocked = true;
-                saveAchievements();
-                showToast(achievements[key].title);
+        function unlockAchievement(id) {
+            if (!unlockedAchievements.includes(id)) {
+                unlockedAchievements.push(id);
+                localStorage.setItem('pong_achievements', JSON.stringify(unlockedAchievements));
+                const ach = achievementsData.find(a => a.id === id);
+                showToast(`Unlocked: ${ach.title}`);
+                renderAchievements();
             }
         }
 
-        function showToast(title) {
-            const toast = document.getElementById('toastBox');
-            document.getElementById('toastText').textContent = `Unlocked: ${title}!`;
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            toast.textContent = text;
             toast.classList.add('show');
-            playTone(900, 'triangle', 0.25);
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
-        function openAchievements() {
-            const listContainer = document.getElementById('achievementsList');
-            listContainer.innerHTML = '';
-            for (let key in achievements) {
-                const ach = achievements[key];
-                listContainer.innerHTML += `
-                    <div class="achievement-item ${ach.unlocked ? 'unlocked' : ''}">
-                        <div class="ach-icon">${ach.icon}</div>
-                        <div class="ach-info">
-                            <h4>${ach.title} ${ach.unlocked ? '✅' : '🔒'}</h4>
-                            <p>${ach.desc}</p>
-                        </div>
-                    </div>
-                `;
+        // --- Core Loop ---
+        function resetBall(servingPlayer = 'player') {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.speed = 4;
+            isSuperhit = false;
+            const dir = servingPlayer === 'player' ? -1 : 1;
+            const angle = (Math.random() * 0.8 - 0.4);
+            ball.vx = ball.speed * Math.sin(angle);
+            ball.vy = ball.speed * Math.cos(angle) * dir;
+        }
+
+        function update() {
+            if (!isRunning) return;
+
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            // Wall collisions
+            if (ball.x - BALL_RADIUS <= 0 || ball.x + BALL_RADIUS >= canvas.width) {
+                ball.vx *= -1;
             }
-            document.getElementById('achievementsModal').classList.add('visible');
+
+            // Bot AI
+            const botTarget = ball.x - PADDLE_WIDTH / 2;
+            const speed = diffSettings[currentDiff].botSpeed;
+            if (bot.x < botTarget) bot.x = Math.min(bot.x + speed, botTarget);
+            if (bot.x > botTarget) bot.x = Math.max(bot.x - speed, botTarget);
+            bot.x = Math.max(0, Math.min(canvas.width - PADDLE_WIDTH, bot.x));
+
+            // Collision: Player Paddle
+            if (ball.vy > 0 && ball.y + BALL_RADIUS >= player.y && ball.y - BALL_RADIUS <= player.y + PADDLE_HEIGHT) {
+                if (ball.x >= player.x && ball.x <= player.x + PADDLE_WIDTH) {
+                    let hitPos = (ball.x - (player.x + PADDLE_WIDTH / 2)) / (PADDLE_WIDTH / 2);
+                    
+                    // Edge superhit
+                    if (Math.abs(hitPos) > 0.75) {
+                        isSuperhit = true;
+                        ball.speed += 2.5;
+                        unlockAchievement('superhit');
+                    } else {
+                        isSuperhit = false;
+                        ball.speed += diffSettings[currentDiff].speedInc;
+                    }
+
+                    let angle = hitPos * (Math.PI / 3);
+                    ball.vx = ball.speed * Math.sin(angle);
+                    ball.vy = -ball.speed * Math.cos(angle);
+                }
+            }
+
+            // Collision: Bot Paddle
+            if (ball.vy < 0 && ball.y - BALL_RADIUS <= bot.y + PADDLE_HEIGHT && ball.y + BALL_RADIUS >= bot.y) {
+                if (ball.x >= bot.x && ball.x <= bot.x + PADDLE_WIDTH) {
+                    let hitPos = (ball.x - (bot.x + PADDLE_WIDTH / 2)) / (PADDLE_WIDTH / 2);
+                    let angle = hitPos * (Math.PI / 3);
+                    ball.speed += diffSettings[currentDiff].speedInc;
+                    ball.vx = ball.speed * Math.sin(angle);
+                    ball.vy = ball.speed * Math.cos(angle);
+                }
+            }
+
+            // Scoring
+            if (ball.y < 0) {
+                player.score++;
+                document.getElementById('playerScore').textContent = player.score;
+                if (player.score >= WINNING_SCORE) endGame(true);
+                else resetBall('bot');
+            } else if (ball.y > canvas.height) {
+                bot.score++;
+                document.getElementById('botScore').textContent = bot.score;
+                if (bot.score >= WINNING_SCORE) endGame(false);
+                else resetBall('player');
+            }
         }
 
-        function closeAchievements() {
-            document.getElementById('achievementsModal').classList.remove('visible');
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Center Net
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = '#30363d';
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Paddles
+            ctx.fillStyle = '#238636';
+            ctx.fillRect(player.x, player.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+
+            ctx.fillStyle = '#da3633';
+            ctx.fillRect(bot.x, bot.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+
+            // Ball
+            ctx.fillStyle = isSuperhit ? '#d29922' : '#f0f6fc';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
         }
 
-        const difficulties = {
-            easy: { botSpeed: 1.4, paddleWidth: 100, ballSpeed: 2.0, botSuperhitChance: 0.0, botSuperhitSpeed: 1.0 },
-            medium: { botSpeed: 2.0, paddleWidth: 90, ballSpeed: 2.5, botSuperhitChance: 0.15, botSuperhitSpeed: 1.15 },
-            hard: { botSpeed: 2.6, paddleWidth: 85, ballSpeed: 3.0, botSuperhitChance: 0.30, botSuperhitSpeed: 1.25 }
-        };
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
 
-        let currentDiff = 'medium';
-        let paddleWidth = difficulties[currentDiff].paddleWidth;
-        const paddleHeight = 10;
-        let isRunning = true;
-        let gameStarted = false;
-        let countdownTimer = 3;
-        let countdownActive = false;
-        let isSuperhit = false;
-
-        const player = { x: canvas.width / 2 - paddleWidth / 2, y: canvas.height - 25, score: 0 };
-        const bot = { x: canvas.width / 2 - paddleWidth / 2, y: 15, score: 0, speed: difficulties[currentDiff].botSpeed };
-        const ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 6, speedX: 0, speedY: 0 };
-
+        // --- Game State Controllers ---
         function setDifficulty(diff) {
             currentDiff = diff;
-            document.querySelectorAll('.diff-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.diff === diff);
-            });
-            paddleWidth = difficulties[diff].paddleWidth;
-            bot.speed = difficulties[diff].botSpeed;
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${diff}`).classList.add('active');
             resetMatch();
         }
 
-        function handleInput(clientX) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            let touchX = (clientX - rect.left) * scaleX;
-            player.x = touchX - paddleWidth / 2;
+        function startCountdown(servingPlayer = 'player') {
+            const modal = document.getElementById('gameModal');
+            let count = 3;
+            modal.innerHTML = `<div class="modal-title">${count}</div>`;
+            modal.classList.add('visible');
 
-            if (player.x < 0) player.x = 0;
-            if (player.x + paddleWidth > canvas.width) player.x = canvas.width - paddleWidth;
-        }
-
-        canvas.addEventListener('mousemove', (e) => handleInput(e.clientX));
-        canvas.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) handleInput(e.touches[0].clientX);
-        });
-
-        canvas.addEventListener('click', (e) => {
-            if (!gameStarted && !countdownActive) {
-                gameStarted = true;
-                startCountdown('player');
-            } else {
-                handleInput(e.clientX);
-            }
-        });
-
-        canvas.addEventListener('touchstart', (e) => {
-            if (!gameStarted && !countdownActive && e.touches.length > 0) {
-                gameStarted = true;
-                startCountdown('player');
-            }
-        });
-
-        function startCountdown(servingPlayer) {
-            countdownActive = true;
-            countdownTimer = 3;
-            ball.x = canvas.width / 2;
-            ball.y = canvas.height / 2;
-            ball.speedX = 0;
-            ball.speedY = 0;
-            isSuperhit = false;
-
-            document.getElementById('controlsHint').textContent = `Starting in 3...`;
-            playTone(400, 'sine', 0.1);
-
-            const interval = setInterval(() => {
-                countdownTimer--;
-                if (countdownTimer > 0) {
-                    document.getElementById('controlsHint').textContent = `Starting in ${countdownTimer}...`;
-                    playTone(400, 'sine', 0.1);
+            let interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    modal.innerHTML = `<div class="modal-title">${count}</div>`;
                 } else {
                     clearInterval(interval);
-                    countdownActive = false;
-                    document.getElementById('controlsHint').textContent = "Hit paddle edge for Superhit!";
-                    
-                    const baseSpeed = difficulties[currentDiff].ballSpeed;
-                    ball.speedX = (Math.random() > 0.5 ? 1 : -1) * (baseSpeed * 0.5);
-                    ball.speedY = servingPlayer === 'player' ? baseSpeed : -baseSpeed;
-                    playTone(600, 'sine', 0.15);
+                    modal.classList.remove('visible');
+                    resetBall(servingPlayer);
+                    isRunning = true;
                 }
-            }, 1000);
+            }, 600);
         }
 
         function resetMatch() {
@@ -567,242 +558,132 @@
             bot.score = 0;
             document.getElementById('playerScore').textContent = '0';
             document.getElementById('botScore').textContent = '0';
-            document.getElementById('gameModal').classList.remove('visible');
-            isRunning = true;
-            gameStarted = false;
-            countdownActive = false;
-            isSuperhit = false;
-            ball.speedX = 0;
-            ball.speedY = 0;
-            document.getElementById('controlsHint').textContent = "Tap canvas to start game";
-        }
-
-        function update() {
-            if (!isRunning || !gameStarted || countdownActive) return;
-
-            ball.x += ball.speedX;
-            ball.y += ball.speedY;
-
-            if (ball.x - ball.radius < 0) {
-                ball.x = ball.radius;
-                ball.speedX *= -1;
-                playTone(220, 'sine', 0.04);
-            } else if (ball.x + ball.radius > canvas.width) {
-                ball.x = canvas.width - ball.radius;
-                ball.speedX *= -1;
-                playTone(220, 'sine', 0.04);
-            }
-
-            if (
-                ball.y + ball.radius >= player.y &&
-                ball.y - ball.radius <= player.y + paddleHeight &&
-                ball.x >= player.x &&
-                ball.x <= player.x + paddleWidth &&
-                ball.speedY > 0
-            ) {
-                ball.speedY *= -1;
-                const hitPos = (ball.x - (player.x + paddleWidth / 2)) / (paddleWidth / 2);
-                
-                if (Math.abs(hitPos) > 0.65) {
-                    isSuperhit = true;
-                    ball.speedX = hitPos * 3.8;
-                    ball.speedY *= 1.25;
-                    playTone(880, 'square', 0.2);
-                } else {
-                    isSuperhit = false;
-                    ball.speedX = hitPos * 2.5;
-                    playTone(440, 'sine', 0.08);
-                }
-            }
-
-            if (
-                ball.y - ball.radius <= bot.y + paddleHeight &&
-                ball.y + ball.radius >= bot.y &&
-                ball.x >= bot.x &&
-                ball.x <= bot.x + paddleWidth &&
-                ball.speedY < 0
-            ) {
-                ball.speedY *= -1;
-                const hitPos = (ball.x - (bot.x + paddleWidth / 2)) / (paddleWidth / 2);
-                
-                const willBotSuperhit = Math.random() < difficulties[currentDiff].botSuperhitChance;
-                if (willBotSuperhit) {
-                    isSuperhit = true;
-                    ball.speedX = hitPos * 4.0;
-                    ball.speedY *= difficulties[currentDiff].botSuperhitSpeed; 
-                    playTone(950, 'square', 0.22);
-                } else {
-                    isSuperhit = false;
-                    ball.speedX = hitPos * 2.5;
-                    playTone(350, 'sine', 0.08);
-                }
-            }
-
-            const botCenter = bot.x + paddleWidth / 2;
-            const trackingThreshold = currentDiff === 'hard' ? 4 : 8;
-            if (Math.abs(botCenter - ball.x) > trackingThreshold) {
-                if (botCenter < ball.x) bot.x += bot.speed;
-                else bot.x -= bot.speed;
-            }
-
-            if (bot.x < 0) bot.x = 0;
-            if (bot.x + paddleWidth > canvas.width) bot.x = canvas.width - paddleWidth;
-
-            if (ball.y - ball.radius > canvas.height) {
-                bot.score++;
-                document.getElementById('botScore').textContent = bot.score;
-                playTone(150, 'sawtooth', 0.2);
-                if (bot.score >= 7) {
-                    endGame(false);
-                } else {
-                    startCountdown('player');
-                }
-            } else if (ball.y + ball.radius < 0) {
-                player.score++;
-                document.getElementById('playerScore').textContent = player.score;
-                playTone(600, 'sine', 0.2);
-                if (player.score >= 7) {
-                    endGame(true);
-                } else {
-                    startCountdown('bot');
-                }
-            }
+            player.x = canvas.width / 2 - PADDLE_WIDTH / 2;
+            bot.x = canvas.width / 2 - PADDLE_WIDTH / 2;
+            startCountdown('player');
         }
 
         function endGame(playerWon) {
             isRunning = false;
-            const modal = document.getElementById('gameModal');
-            
+
             if (playerWon) {
-                modal.innerHTML = `
-                    <div class="modal-icon">🏆</div>
-                    <div class="modal-title">You Won the Match!</div>
-                    <button class="primary-btn" onclick="resetMatch()">Play Again</button>
-                `;
-                modal.classList.add('visible');
-
-                unlockAchievement('firstWin');
-                winStreak++;
-                localStorage.setItem('pong_streak', winStreak);
-                if (winStreak >= 2) unlockAchievement('winStreak2');
-
-                if (bot.score === 0) {
-                    if (currentDiff === 'easy') unlockAchievement('easyShutout');
-                    if (currentDiff === 'medium') unlockAchievement('medShutout');
-                    if (currentDiff === 'hard') unlockAchievement('hardShutout');
-                }
-
-                if (currentDiff === 'medium') {
-                    medWinStreak++;
-                    localStorage.setItem('pong_med_streak', medWinStreak);
-                    if (medWinStreak >= 2) unlockAchievement('medStreak2');
-                } else {
-                    medWinStreak = 0;
-                    localStorage.setItem('pong_med_streak', 0);
-                }
-
-                if (currentDiff === 'hard') {
-                    hardWinStreak++;
-                    localStorage.setItem('pong_hard_streak', hardWinStreak);
-                    if (hardWinStreak >= 3) unlockAchievement('legend');
-                } else {
-                    hardWinStreak = 0;
-                    localStorage.setItem('pong_hard_streak', 0);
-                }
+                // Player Won: No ad, show Win screen
+                showWinModal();
             } else {
-                modal.innerHTML = `
-                    <div class="modal-icon">💀</div>
-                    <div class="modal-title">Bot Wins!</div>
-                    <button class="primary-btn" style="background: var(--accent-gold);" onclick="watchAdToContinue()">
-                        🎬 Watch Ad to Revive
-                    </button>
-                    <button class="primary-btn" style="background: var(--border-color);" onclick="resetMatch()">
-                        Give Up & Restart
-                    </button>
-                `;
-                modal.classList.add('visible');
+                // Player Lost: Show ad, then show Game Over screen
+                if (AdController) {
+                    AdController.show().then(() => {
+                        showLossModal();
+                    }).catch(() => {
+                        showLossModal();
+                    });
+                } else {
+                    showLossModal();
+                }
+            }
+        }
 
-                winStreak = 0;
+        function showWinModal() {
+            const modal = document.getElementById('gameModal');
+            modal.innerHTML = `
+                <div class="modal-icon">🏆</div>
+                <div class="modal-title">You Won the Match!</div>
+                <button class="primary-btn" onclick="resetMatch()">Play Again</button>
+            `;
+            modal.classList.add('visible');
+
+            unlockAchievement('firstWin');
+            winStreak++;
+            localStorage.setItem('pong_streak', winStreak);
+            if (winStreak >= 2) unlockAchievement('winStreak2');
+
+            if (bot.score === 0) {
+                if (currentDiff === 'easy') unlockAchievement('easyShutout');
+                if (currentDiff === 'medium') unlockAchievement('medShutout');
+                if (currentDiff === 'hard') unlockAchievement('hardShutout');
+            }
+
+            if (currentDiff === 'medium') {
+                medWinStreak++;
+                localStorage.setItem('pong_med_streak', medWinStreak);
+                if (medWinStreak >= 2) unlockAchievement('medStreak2');
+            } else {
                 medWinStreak = 0;
-                hardWinStreak = 0;
-                localStorage.setItem('pong_streak', 0);
                 localStorage.setItem('pong_med_streak', 0);
+            }
+
+            if (currentDiff === 'hard') {
+                hardWinStreak++;
+                localStorage.setItem('pong_hard_streak', hardWinStreak);
+                if (hardWinStreak >= 3) unlockAchievement('legend');
+            } else {
+                hardWinStreak = 0;
                 localStorage.setItem('pong_hard_streak', 0);
             }
         }
 
-        function watchAdToContinue() {
-            if (AdController) {
-                AdController.show().then((result) => {
-                    bot.score = 5;
-                    document.getElementById('botScore').textContent = bot.score;
-                    document.getElementById('gameModal').classList.remove('visible');
-                    isRunning = true;
-                    startCountdown('player');
-                    showToast("Second Chance Granted!");
-                }).catch((err) => {
-                    showToast("Ad skipped or failed.");
-                });
-            } else {
-                // Desktop simulation fallback
-                bot.score = 5;
-                document.getElementById('botScore').textContent = bot.score;
-                document.getElementById('gameModal').classList.remove('visible');
-                isRunning = true;
-                startCountdown('player');
-                showToast("Revived (Desktop Mode)");
-            }
+        function showLossModal() {
+            const modal = document.getElementById('gameModal');
+            modal.innerHTML = `
+                <div class="modal-icon">💀</div>
+                <div class="modal-title">Bot Wins!</div>
+                <button class="primary-btn" onclick="resetMatch()">Play Again</button>
+            `;
+            modal.classList.add('visible');
+
+            winStreak = 0;
+            medWinStreak = 0;
+            hardWinStreak = 0;
+            localStorage.setItem('pong_streak', 0);
+            localStorage.setItem('pong_med_streak', 0);
+            localStorage.setItem('pong_hard_streak', 0);
         }
 
-        function draw() {
-            ctx.fillStyle = '#090d16';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.setLineDash([6, 6]);
-            ctx.strokeStyle = '#334155';
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height / 2);
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            ctx.fillStyle = '#10b981';
-            ctx.fillRect(player.x, player.y, paddleWidth, paddleHeight);
-
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(bot.x, bot.y, paddleWidth, paddleHeight);
-
-            ctx.fillStyle = isSuperhit ? '#ec4899' : '#f8fafc';
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, isSuperhit ? ball.radius + 2.5 : ball.radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            if (!gameStarted) {
-                ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.fillStyle = '#f8fafc';
-                ctx.font = 'bold 22px system-ui, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('TAP TO PLAY', canvas.width / 2, canvas.height / 2 + 8);
-            } else if (countdownActive) {
-                ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.fillStyle = '#f8fafc';
-                ctx.font = 'bold 48px system-ui, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(countdownTimer, canvas.width / 2, canvas.height / 2 + 16);
-            }
+        // --- Controls ---
+        function movePaddle(clientX) {
+            const rect = canvas.getBoundingClientRect();
+            let newX = clientX - rect.left - PADDLE_WIDTH / 2;
+            player.x = Math.max(0, Math.min(canvas.width - PADDLE_WIDTH, newX));
         }
 
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            movePaddle(e.touches[0].clientX);
+        }, { passive: false });
+
+        canvas.addEventListener('mousemove', (e) => {
+            movePaddle(e.clientX);
+        });
+
+        // Start Initial Modal
+        const modal = document.getElementById('gameModal');
+        modal.innerHTML = `
+            <div class="modal-icon">🏓</div>
+            <div class="modal-title">Arcade Pong</div>
+            <button class="primary-btn" onclick="resetMatch()">Start Game</button>
+        `;
+        modal.classList.add('visible');
+
+        // Achievements Render
+        function renderAchievements() {
+            const list = document.getElementById('achList');
+            list.innerHTML = achievementsData.map(a => `
+                <div class="ach-item ${unlockedAchievements.includes(a.id) ? 'unlocked' : ''}">
+                    <div class="ach-icon">${a.icon}</div>
+                    <div class="ach-info">
+                        <h4>${a.title}</h4>
+                        <p>${a.desc}</p>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        gameLoop();
+        function toggleAchievements() {
+            document.getElementById('achDrawer').classList.toggle('open');
+        }
+
+        renderAchievements();
+        loop();
     </script>
 </body>
 </html>
