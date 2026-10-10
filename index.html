@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="monetag" content="70d3e56bae865ff3e63045b758949de9">
-    <script>(function(s){s.dataset.zone='11996024',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Arcade Pong</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Adsgram SDK for Telegram Ad Monetization -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -40,20 +42,27 @@
             padding: 12px;
         }
 
-        /* Safe Top Ad Zone */
+        /* Rewarded Ad Reward Trigger Button */
         .ad-zone {
             width: 100%;
             max-width: 400px;
-            background: rgba(30, 41, 59, 0.5);
-            border: 2px dashed var(--border-color);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(236, 72, 153, 0.2));
+            border: 2px solid var(--accent-primary);
             border-radius: 8px;
             padding: 10px;
             text-align: center;
-            color: var(--text-muted);
+            color: var(--text-main);
             font-size: 0.75rem;
+            font-weight: 700;
             margin-bottom: 12px;
             letter-spacing: 0.05em;
             text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ad-zone:active {
+            transform: scale(0.98);
         }
 
         .game-card {
@@ -310,9 +319,9 @@
 </head>
 <body>
 
-    <!-- Safe Top Ad Zone -->
-    <div class="ad-zone">
-        Arcade Pong Live
+    <!-- Telegram Adsgram Rewarded Ad Button -->
+    <div class="ad-zone" onclick="watchAdForBonus()">
+        🎬 Watch Ad for Bonus / Continue
     </div>
 
     <div class="game-card">
@@ -370,6 +379,36 @@
     </div>
 
     <script>
+        // Initialize Telegram WebApp SDK safely
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Initialize Adsgram Controller (Replace 'YOUR_BLOCK_ID' with your actual Adsgram Block ID)
+        let AdController = null;
+        try {
+            if (window.Adsgram) {
+                AdController = window.Adsgram.init({ blockId: "YOUR_BLOCK_ID" });
+            }
+        } catch (e) {
+            console.log("Adsgram initialization skipped/failed outside Telegram.");
+        }
+
+        function watchAdForBonus() {
+            if (AdController) {
+                AdController.show().then((result) => {
+                    // User watched the ad completely - give them a gameplay perk or bonus score
+                    showToast("Ad Watched! Bonus Active!");
+                    playTone(900, 'triangle', 0.25);
+                }).catch((result) => {
+                    // User skipped or ad failed
+                    showToast("Ad skipped or unavailable.");
+                });
+            } else {
+                alert("Adsgram SDK is loading or unavailable in this environment.");
+            }
+        }
+
         const canvas = document.getElementById('pongCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -407,7 +446,6 @@
             legend: { id: 'legend', title: 'Pong Legend', desc: 'Win 3 Hard games in a row', icon: '👑', unlocked: false }
         };
 
-        // Load saved achievements from localStorage
         function loadAchievements() {
             const saved = localStorage.getItem('pong_achievements');
             if (saved) {
@@ -428,7 +466,6 @@
 
         loadAchievements();
 
-        // Stats Tracking for Streaks
         let winStreak = parseInt(localStorage.getItem('pong_streak') || '0');
         let medWinStreak = parseInt(localStorage.getItem('pong_med_streak') || '0');
         let hardWinStreak = parseInt(localStorage.getItem('pong_hard_streak') || '0');
@@ -473,7 +510,6 @@
             document.getElementById('achievementsModal').classList.remove('visible');
         }
 
-        // Difficulty Settings
         const difficulties = {
             easy: { botSpeed: 1.4, paddleWidth: 100, ballSpeed: 2.0, botSuperhitChance: 0.0, botSuperhitSpeed: 1.0 },
             medium: { botSpeed: 2.0, paddleWidth: 90, ballSpeed: 2.5, botSuperhitChance: 0.15, botSuperhitSpeed: 1.15 },
@@ -503,7 +539,6 @@
             resetMatch();
         }
 
-        // Controls
         function handleInput(clientX) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
@@ -586,7 +621,6 @@
             ball.x += ball.speedX;
             ball.y += ball.speedY;
 
-            // Wall Collisions
             if (ball.x - ball.radius < 0) {
                 ball.x = ball.radius;
                 ball.speedX *= -1;
@@ -597,7 +631,6 @@
                 playTone(220, 'sine', 0.04);
             }
 
-            // Player Paddle Collision
             if (
                 ball.y + ball.radius >= player.y &&
                 ball.y - ball.radius <= player.y + paddleHeight &&
@@ -620,7 +653,6 @@
                 }
             }
 
-            // Bot Paddle Collision
             if (
                 ball.y - ball.radius <= bot.y + paddleHeight &&
                 ball.y + ball.radius >= bot.y &&
@@ -644,7 +676,6 @@
                 }
             }
 
-            // Bot Tracking
             const botCenter = bot.x + paddleWidth / 2;
             const trackingThreshold = currentDiff === 'hard' ? 4 : 8;
             if (Math.abs(botCenter - ball.x) > trackingThreshold) {
@@ -655,7 +686,6 @@
             if (bot.x < 0) bot.x = 0;
             if (bot.x + paddleWidth > canvas.width) bot.x = canvas.width - paddleWidth;
 
-            // Scoring & First to 7 Check
             if (ball.y - ball.radius > canvas.height) {
                 bot.score++;
                 document.getElementById('botScore').textContent = bot.score;
@@ -728,7 +758,6 @@
             ctx.fillStyle = '#090d16';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Center Net
             ctx.setLineDash([6, 6]);
             ctx.strokeStyle = '#334155';
             ctx.beginPath();
@@ -737,7 +766,6 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Paddles & Ball
             ctx.fillStyle = '#10b981';
             ctx.fillRect(player.x, player.y, paddleWidth, paddleHeight);
 
@@ -749,7 +777,6 @@
             ctx.arc(ball.x, ball.y, isSuperhit ? ball.radius + 2.5 : ball.radius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Overlays
             if (!gameStarted) {
                 ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
