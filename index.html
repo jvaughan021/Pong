@@ -318,9 +318,7 @@
     <div class="canvas-container">
         <canvas id="pongCanvas"></canvas>
 
-        <div class="modal-overlay" id="gameModal">
-            <!-- Modal Content -->
-        </div>
+        <div class="modal-overlay" id="gameModal"></div>
     </div>
 
     <div class="footer-note" id="instructionText">Hit paddle edge for Superhit! • Tap to start</div>
@@ -337,20 +335,17 @@
     <div class="toast" id="toast">Achievement Unlocked!</div>
 
     <script>
-        // --- Telegram SDK ---
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) {
             tg.expand();
             tg.ready();
         }
 
-        // Adsgram AdController Initialization
         let AdController = null;
         if (window.Adsgram) {
             AdController = window.Adsgram.init({ blockId: "int-53213" });
         }
 
-        // --- Canvas & Core Setup ---
         const canvas = document.getElementById('pongCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -369,6 +364,7 @@
         let currentDiff = 'medium';
         let isRunning = false;
         let isSuperhit = false;
+        let countdownInterval = null;
 
         let player = { x: canvas.width / 2 - PADDLE_WIDTH / 2, y: canvas.height - 20, score: 0 };
         let bot = { x: canvas.width / 2 - PADDLE_WIDTH / 2, y: 10, score: 0 };
@@ -380,7 +376,6 @@
             hard: { botSpeed: 4.8, speedInc: 0.5 }
         };
 
-        // --- Achievements Data ---
         const achievementsData = [
             { id: 'firstWin', icon: '🥉', title: 'First Victory', desc: 'Win your first match.' },
             { id: 'winStreak2', icon: '🥈', title: 'On a Roll', desc: 'Win 2 matches in a row.' },
@@ -514,21 +509,23 @@
             currentDiff = diff;
             document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-${diff}`).classList.add('active');
-            resetMatch();
         }
 
         function startCountdown(servingPlayer = 'player') {
+            isRunning = false;
+            if (countdownInterval) clearInterval(countdownInterval);
+
             const modal = document.getElementById('gameModal');
             let count = 3;
             modal.innerHTML = `<div class="modal-title">${count}</div>`;
             modal.classList.add('visible');
 
-            let interval = setInterval(() => {
+            countdownInterval = setInterval(() => {
                 count--;
                 if (count > 0) {
                     modal.innerHTML = `<div class="modal-title">${count}</div>`;
                 } else {
-                    clearInterval(interval);
+                    clearInterval(countdownInterval);
                     modal.classList.remove('visible');
                     resetBall(servingPlayer);
                     isRunning = true;
@@ -548,11 +545,11 @@
 
         function endGame(playerWon) {
             isRunning = false;
+            if (countdownInterval) clearInterval(countdownInterval);
 
             if (playerWon) {
                 showWinModal();
             } else {
-                // Trigger Adsgram Interstitial Ad on Loss
                 if (AdController) {
                     AdController.show().then(() => {
                         showLossModal();
@@ -636,6 +633,7 @@
             movePaddle(e.clientX);
         });
 
+        // Initial Title Screen
         const modal = document.getElementById('gameModal');
         modal.innerHTML = `
             <div class="modal-icon">🏓</div>
